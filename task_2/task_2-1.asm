@@ -72,12 +72,20 @@
 		#-------------------------------#
 
 		move $t3, $t2 # C = B		
-		divu $t4, $t2, 2 # B/2
-		mul $t5, $t2, 2 # B*2
-		divu $t5, $t1, $t5 # A/(B*2)
-		add $t2, $t4, $zero # B/2 + 0
-		add $t2, $t2, $t5 # B/2 + A/(B*2)
-			
+		
+		div $t3, $t2
+		mflo $t4 # Recebe o resto de A/B
+		
+		add $t5, $t4, $zero
+		add $t5, $t5, $t2
+		
+		li $t4, 0x02
+		div $t5, $t4
+		
+		mflo $t5
+
+		move $t2, $t5
+
 	verifica_raiz:
 		bne $t2, $t3, calcula_raiz
 		
