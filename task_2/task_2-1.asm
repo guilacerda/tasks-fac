@@ -1,5 +1,6 @@
 .data
 
+	value: .space 32
 	success_message_1: .asciiz "A exponencial modular "
 	success_message_2: .asciiz " elevado a "
 	success_message_3: .asciiz " (mod "
@@ -117,30 +118,42 @@
 		j calc_exp
 			
 	calc_exp:
-	
-		beq $t5, 32, imprime_saida # Chama o método de imprimir a saída correta
-		and $t3, $t4, 0x01
-		addi $t5, $t5, 1
-		srl $t4, $t4, 1			
-		sllv $s5, $t2, $t5 # $s5 guarda o shift das bases de 2 
-		srl $s5, $s5, 1
-		
-		beqz $t3, calc_exp	
-				
-		li $t1, 0
-		j multiplicacao
-														
-	multiplicacao:
+
+			li $s6, 0x01
+			move $s7, $s1
 			
-		mul $s6, $s6, $s1
+			div $s7, $s3
+			mfhi $s7
+			
+			move $t3, $s2
+			li $t4, 0x01
+			
+			j multiplicacao
+	
+	multiplicacao:		
+			beqz $t3, imprime_saida
+			
+			and $t5, $t3, $t4
+			
+			beqz $t5, nao
+			bnez $t5, sim		
+
+	sim:
+		mul $s6, $s6, $s7
 		div $s6, $s3
 		mfhi $s6
 		
-		addi $t1, $t1, 1
-		beq $t1, $s5, calc_exp
-						
+		j nao
+		
+	nao:
+		srl $t3, $t3, 1
+		
+		mul $s7, $s7, $s7
+		div $s7, $s3
+		mfhi $s7
+		
 		j multiplicacao
-			
+									
 	imprime_erro:
 		li $v0, 4
 		
