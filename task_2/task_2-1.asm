@@ -1,9 +1,9 @@
 .data
 
-	sucess_message_1: .asciiz "A exponencial modular "
-	sucess_message_2: .asciiz " elevado a "
-	sucess_message_3: .asciiz " (mod "
-	sucess_message_4: .asciiz ") eh "
+	success_message_1: .asciiz "A exponencial modular "
+	success_message_2: .asciiz " elevado a "
+	success_message_3: .asciiz " (mod "
+	success_message_4: .asciiz ") eh "
 	
 	failure_message: .asciiz "O modulo nao eh primo"
 	
@@ -11,21 +11,21 @@
 
 .text
 	#----------------------------------------------------------------#
-	#            Registradores reservados para a atividade 		 #
+	#            Registradores reservados para a atividade 		 			 #
 	#----------------------------------------------------------------#
-	# $v0 => destinado ao syscall para construir as funções		 #
-	# $a0 => destinado ao syscall para passagem de parâmetros	 #
+	# $v0 => destinado ao syscall para construir as funções		 			 #
+	# $a0 => destinado ao syscall para passagem de parâmetros	 			 #
 	#----------------------------------------------------------------#
-	# $s1 => armazena o primeiro valor em inteiro			 #
-	# $s2 => armazena o segundo valor em inteiro			 #
-	# $s3 => armazena o terceiro valor em inteiro			 #
-	# $s4 => armazena o valor da raiz para descobrir o primo	 # 
+	# $s1 => armazena o primeiro valor em inteiro			 							 #
+	# $s2 => armazena o segundo valor em inteiro			 							 #
+	# $s3 => armazena o terceiro valor em inteiro			 							 #
+	# $s4 => armazena o valor da raiz para descobrir o primo	 			 #		 
 	#----------------------------------------------------------------#
-	# $t6 => destinado a todas as mensagens de sucesso		 #
-	# $t7 => destinado a todas as mensagens de fracasso		 #
+	# $t6 => destinado a todas as mensagens de sucesso		 					 #
+	# $t7 => destinado a todas as mensagens de fracasso		 					 #
 	#----------------------------------------------------------------#
-	# $f2 => valor convertido do primeiro inteiro para double	 #
-	# $f4 => valor convertido do segundo inteiro para double 	 #
+	# $f2 => valor convertido do primeiro inteiro para double	 			 #
+	# $f4 => valor convertido do segundo inteiro para double 	 			 #
 	#----------------------------------------------------------------#
 
 	le_inteiro:
@@ -54,8 +54,7 @@
 		move $s4, $t3 # Copia o valor da raiz para o registrador $s4
 	
 		jal verifica_primo # Chama o método para verificar se o valor é primo
-	
-	
+			
 	calcula_raiz:
 		
 		#-------------------------------#
@@ -101,23 +100,45 @@
 		mfhi $t5 # Obtém o resto da divisão anterior
 		beq $t5, $zero, imprime_erro # Verifica se o resto é zero, se for, o valor não é primo
 
-		beq $t4, $s4, calc_exp # Se o contador chegar até o limite da raiz, 
+		beq $t4, $s4, calcula # Se o contador chegar até o limite da raiz, 
 				       # então calcula a exponencial modular
 				
 		addi $t4, $t4, 1 # Incrementa mais 1 no contador
 		j verifica_primo # Realiza o processo recursivo da verificação dos primos
 	
+	calcula:
+		# li 1 e li 2 vão para outro método que irá chamar o calc_exp
+		li $t1, 1
+		move $t4, $s2 # $t4 = $s2 = B
+		addi $t5, $t5, -1 # Contador = 0
+		li $t2, 0x01 # $t2 => contador de multiplicação
+		li $s6, 0x01 # Carrega o valor total da exponenciação
+
+		j calc_exp
+			
 	calc_exp:
 	
-	#-----------------------------------------------------------------------------------------------#
-	#		Processo para calcular a exponencial modular de forma rápida			#
-	#-----------------------------------------------------------------------------------------------#
-	# Passo 1 => Divida o segundo valor em potências de 2						#
-	# Passo 2 => Calcule o mod do terceiro valor com as potências de 2				#
-	# Passo 3 => Use propriedades de multiplicação modular para combinar os valores calculados	#
-	#-----------------------------------------------------------------------------------------------#
-	
-		j imprime_saida # Chama o método de imprimir a saída correta
+		beq $t5, 32, imprime_saida # Chama o método de imprimir a saída correta
+		and $t3, $t4, 0x01
+		addi $t5, $t5, 1
+		srl $t4, $t4, 1			
+		sllv $s5, $t2, $t5 # $s5 guarda o shift das bases de 2 
+						
+		beqz $t3, calc_exp
+		
+		li $t1, 1
+		j multiplicacao
+														
+	multiplicacao:
+		
+		mul $s6, $s6, $s1
+		div $s6, $s3
+		mfhi $s6
+		
+		addi $t1, $t1, 1
+		beq $t1, $s5, calc_exp
+						
+		j multiplicacao
 			
 	imprime_erro:
 		li $v0, 4
@@ -131,7 +152,42 @@
 		j end # Chama o método para finalizar o programa
 	
 	imprime_saida:
-	
+
+		li $v0, 4
+		la $a0, success_message_1
+		syscall
+
+		li $v0, 1
+		move $a0, $s1
+		syscall
+		
+		li $v0, 4		
+		la $a0, success_message_2
+		syscall
+		
+		li $v0, 1
+		move $a0, $s2
+		syscall
+
+		li $v0, 4
+		la $a0, success_message_3
+		syscall
+
+		li $v0, 1
+		move $a0, $s3
+		syscall
+		
+		li $v0, 4
+		la $a0, success_message_4
+		syscall
+		
+		li $v0, 1
+		move $a0, $s6
+		syscall
+		
+		li $v0, 4		
+		la $a0, finish_message
+		syscall
 
 		j end # Chama o método para finalizar o programa
 	
