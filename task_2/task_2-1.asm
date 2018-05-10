@@ -118,39 +118,50 @@
 		j calc_exp
 			
 	calc_exp:
+			# Lógica a ser realizada
+			# 
+			#	resultado_multiplicacao = 1 
+			# A = A % C
+			# Enquanto o B for maior do que zero :
+			#		e se B and 0x01 for 1
+			#			resultado_multiplicacao = (resultado_multiplicacao * A) % C
+			#		Saindo da condição anterior, ou não passando por ela
+			#		shiftamos em um bit para a direita o valor do B
+			#		A = (A*A) % C
 
-			li $s6, 0x01
-			move $s7, $s1
+
+			li $s6, 0x01 # Resultado_multiplicacao = 1
+			move $s7, $s1 # Copiamos o valor de A em $s7 para uso futuro
 			
-			div $s7, $s3
-			mfhi $s7
+			div $s7, $s3 # Pegamos o valor restante da divisão entre o A e o C
+			mfhi $s7 # Associamos o restante ao registrador $s7
 			
-			move $t3, $s2
-			li $t4, 0x01
+			move $t3, $s2 # Igualamos o registrador t3 com o valor do registrador s2
+			li $t4, 0x01 # Usamos o registrador t4 com o valor 1 para fazer o AND
 			
 			j multiplicacao
 	
 	multiplicacao:		
-			beqz $t3, imprime_saida
+			beqz $t3, imprime_saida # Se o registrador t3 for igual a zero é porque já foi totalmente shiftado
 			
-			and $t5, $t3, $t4
+			and $t5, $t3, $t4 # Faz o AND entre os registradores t3 e t4, salvando em t5. Assim saberemos se o último valor é 1 ou 0
 			
-			beqz $t5, nao
-			bnez $t5, sim		
+			beqz $t5, nao_preenchido # se o bit menos significativo for 0 ele vai pra funcao nao_preenchido
+			bnez $t5, preenchido # se o bit menos significativo for 1, ele vai pra funcao preenchido	
 
-	sim:
-		mul $s6, $s6, $s7
-		div $s6, $s3
-		mfhi $s6
+	preenchido:
+		mul $s6, $s6, $s7 # multiplica resultado_multiplicacao * A e aloca no registrador s6
+		div $s6, $s3 # pega o resto da divisão entre resultado_multiplicacao e C
+		mfhi $s6 # associa o resto com o registrador s6
 		
-		j nao
+		j nao_preenchido
 		
-	nao:
-		srl $t3, $t3, 1
+	nao_preenchido:
+		srl $t3, $t3, 1 # dá um shift a direita em B
 		
-		mul $s7, $s7, $s7
-		div $s7, $s3
-		mfhi $s7
+		mul $s7, $s7, $s7 # multiplica A = A * A
+		div $s7, $s3 # Divide A por C
+		mfhi $s7 # associa resultado com o registrador s7
 		
 		j multiplicacao
 									
@@ -167,10 +178,12 @@
 	
 	imprime_saida:
 
+		# Repete o mod para o todo
 		mul $s6, $s6, $s1
 		div $s6, $s3
 		mfhi $s6
 
+		# O bloco de código a seguir se refere a concatenação da string de resultado
 		li $v0, 4
 		la $a0, success_message_1
 		syscall
