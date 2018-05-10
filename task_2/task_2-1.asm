@@ -108,7 +108,7 @@
 	
 	calcula:
 		# li 1 e li 2 vão para outro método que irá chamar o calc_exp
-		li $t1, 1
+		li $t1, 0
 		move $t4, $s2 # $t4 = $s2 = B
 		addi $t5, $t5, -1 # Contador = 0
 		li $t2, 0x01 # $t2 => contador de multiplicação
@@ -123,14 +123,15 @@
 		addi $t5, $t5, 1
 		srl $t4, $t4, 1			
 		sllv $s5, $t2, $t5 # $s5 guarda o shift das bases de 2 
-						
-		beqz $t3, calc_exp
+		srl $s5, $s5, 1
 		
-		li $t1, 1
+		beqz $t3, calc_exp	
+				
+		li $t1, 0
 		j multiplicacao
 														
 	multiplicacao:
-		
+			
 		mul $s6, $s6, $s1
 		div $s6, $s3
 		mfhi $s6
@@ -152,6 +153,10 @@
 		j end # Chama o método para finalizar o programa
 	
 	imprime_saida:
+
+		mul $s6, $s6, $s1
+		div $s6, $s3
+		mfhi $s6
 
 		li $v0, 4
 		la $a0, success_message_1
