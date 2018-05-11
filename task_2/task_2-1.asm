@@ -73,6 +73,8 @@
 		# Passo 4 => B = (B + A/B)/2	#
 		#-------------------------------#
 
+		# tu não mandou eu fazer isso =(
+
 		move $t3, $t2 # C = B (Passo 1)
 		
 		div $t1, $t2 # Divide 
